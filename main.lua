@@ -87,15 +87,40 @@ elseif dataSet == 'spiral' then
 	data = torch.load('datasets/spiral.t7'):float()
 	y_size = data:size(2)
 
-elseif dataset == 'fashion-mnist' then
+elseif dataSet == 'fashion-mnist' then
     
 	print('Load Fashion-MNIST')
 	local fashion_mnist = require 'fashion-mnist'
-	local trainset = fashion_mnist.traindataset()
-	local testset = fashion_mnist.testdataset()
+	
+	local train_set = fashion_mnist.traindataset()
+	data = train_set.data:float():div(255)
+	label_data = train_set.label:float():add(1)		--> [1, 10]
+
+	local test_set = fashion_mnist.testdataset()
+	test_data = test_set.data:float():div(255)
+	test_data_label = test_set.data:flloat():add(1)	--> [1, 10]
+	
+	if opt.inputDimension == 1 then
+		data = data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
+		test_data = test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
+		y_size = data:size(2)
+	else
+		y_size = {data:size(2), data:size(3)}
+		data = data:resize(data:size(1), 1, data:size(2), data:size(3))
+		test_data = test_data:resize(test_data:size(1), 1, test_data:size(2), test_data:size(3))
+	end
+
 	print('Train set size: ' .. trainset.size)
 	print('Test set size: ' .. testset.size)
 
+else
+
+	error('Unsupported dataset ' .. dataSet)
+
+end
+
+for k, v in pairs({'data'=data, 'test_data'=test_data}) do
+	print(k .. ' size: ' .. data:size())
 end
 
 
