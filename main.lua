@@ -98,12 +98,13 @@ elseif dataSet == 'fashion-mnist' then
 
 	local test_set = fashion_mnist.testdataset()
 	test_data = test_set.data:float():div(255)
-	test_data_label = test_set.data:float():add(1)	--> [1, 10]
+	test_data_label = test_set.label:float():add(1)	--> [1, 10]
 	
 	if opt.inputDimension == 1 then
-		data = data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
+		y_size = {data:size(2), data:size(3)}
+                data = data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
 		test_data = test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
-		y_size = data:size(2)
+		-- y_size = data:size(2)
 	else
 		y_size = {data:size(2), data:size(3)}
 		data = data:resize(data:size(1), 1, data:size(2), data:size(3))
@@ -116,9 +117,12 @@ else
 
 end
 
-for k, v in pairs({data=data, test_data=test_data}) do
-	print(k .. ' size: ')
-	print(v:size())
+for k, v in pairs({data=data, label_data=label_data, 
+	test_data=test_data, test_data_label=test_data_label}) do
+	if v then
+		print(k .. ' size: ')
+		print(v:size())
+	end
 end
 
 
@@ -220,7 +224,9 @@ if cuda == 1 then
 	  print('Using cudnn')
    	  cudnn.convert(GMVAE, cudnn)
   	end
-	test_data = test_data:cuda()
+	if test_data then
+          test_data = test_data:cuda()
+        end
 end
 
 local params, gradParams = GMVAE:getParameters()
