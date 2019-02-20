@@ -87,6 +87,15 @@ elseif dataSet == 'spiral' then
 	data = torch.load('datasets/spiral.t7'):float()
 	y_size = data:size(2)
 
+elseif dataset == 'fashion-mnist' then
+    
+	print('Load Fashion-MNIST')
+	local fashion_mnist = require 'fashion-mnist'
+	local trainset = fashion_mnist.traindataset()
+	local testset = fashion_mnist.testdataset()
+	print('Train set size: ' .. trainset.size)
+	print('Test set size: ' .. testset.size)
+
 end
 
 
