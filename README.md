@@ -49,3 +49,7 @@ I would like to thanks the following, whose github's repos were used as inital t
 2. Joost van Amersfoort https://github.com/y0ast/VAE-Torch
 
 3. Kai Arulkumaran https://github.com/Kaixhin/Autoencoders
+
+# Refactor notes (LYL)
+1. Should be luarocks, not torch-rocks
+2. luarocks install https://raw.github.com/mingloo/fashion-mnist/master/rocks/fashion-mnist-scm-1.rockspec
