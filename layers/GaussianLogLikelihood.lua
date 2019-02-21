@@ -27,7 +27,7 @@ function GaussianLogLikelihood:updateOutput(input)
 	local D = input[1]:size(2)
 
 	self._x = copy_or_clone(self._x, input[1])
-	self._var = coyp_or_clone(self._var, input[3])
+	self._var = copy_or_clone(self._var, input[3])
 	self._var:exp()
 
 	self.output = self.output or input[1].new()
