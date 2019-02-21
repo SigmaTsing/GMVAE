@@ -42,7 +42,7 @@ elif [ "$DATA" == "cifar-10" ]; then
 
 elif [ "$DATA" == "cifar-100" ]; then
   th main.lua -dataSet cifar-100 -continuous 1 -hiddenSize 1000 \
-  -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
+  -ACC 1 -K 100 -batchSize 50 -inputDimension 1 -network fc \
   -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 
 elif [ "$DATA" == "svhn" ]; then
