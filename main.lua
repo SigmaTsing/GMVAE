@@ -160,20 +160,19 @@ local y_generator = model:CreateYGenerator(x_size, hidden_size, y_size, continuo
 local prior_generator = model:CreatePriorGenerator(w_size, hidden_size, x_size, z_size)
 
 -- Connect parts together --
+-- LYL: this is 2016 version
 local input = - nn.Identity()
 local noise1 = - nn.Identity()
 local noise2 = - nn.Identity()
 local zxw = input - zxw_recogniser
-local q_x = zxw - nn.SelectTable(1)
-local q_w = zxw - nn.SelectTable(2)
+local q_z = zxw - nn.SelectTable(1)
+local q_x = zxw - nn.SelectTable(2)
+local q_w = zxw - nn.SelectTable(3)
 local x_sample = {q_x, noise1} - GaussianSampler(opt.nMC, x_size)
 local w_sample = {q_w, noise2} - GaussianSampler(opt.nMC, w_size)
 local y_recon  = x_sample - y_generator
 local p_xz  = w_sample - prior_generator
-local mean_k = p_xz - nn.SelectTable(1)
-local logVar_k = p_xz - nn.SelectTable(2)
-local p_z = {x_sample, mean_k, logVar_k} - Likelihood(z_size, x_size, opt.nMC)
-local GMVAE = nn.gModule({input, noise1, noise2},{p_z, q_x, q_w, p_xz, y_recon})
+local GMVAE = nn.gModule({input, noise1, noise2},{q_z, q_x, q_w, p_xz, y_recon, x_sample})
 
 -- Additional layers to facilitate more than one monte-carlo sample
 local MC_replicate = nn.Replicate(opt.nMC)
