@@ -120,6 +120,10 @@ elseif dataSet == 'fashion-mnist' then
 	-- y_size = {data:size(2), data:size(3)}
     data = data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
 	test_data = test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
+	data = torch.cat(data, test_data, 1)
+	test_data = nil
+	label_data = torch.cat(label_data, test_data_label, 1)
+	test_data_label = nil
 	y_size = data:size(2)	-- 784
 
 elseif dataSet == 'stl-10' or dataSet == 'cifar-10' or dataSet == 'cifar-100' then
