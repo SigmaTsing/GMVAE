@@ -128,11 +128,12 @@ elseif dataSet == 'stl-10' or dataSet == 'cifar-10' or dataSet == 'cifar-100' th
 	label_data = label_data:resize(label_data:nElement())
 
 	-- Normalize
-	for i = 1, label_data:size(1) do
-		label_data[i] = label_data[i]:sub(torch.mean(label_data[i]))
-			:div(torch.std(label_data[i]) + 1e-7)
+	for i = 1, data:size(1) do
+		data[i]:sub(torch.mean(data[i]))
+			:div(torch.std(data[i]) + 1e-7)
 	end
 	label_data:add(1 - torch.min(label_data))	--> [1, 10]
+	assert(data:size(1) == label_data:size(1))
 
 	y_size = data:size(2)
 
@@ -150,12 +151,13 @@ elseif dataSet == 'svhn' then
 	label_data = label_data:resize(label_data:nElement())
 
 	-- Normalize
-	for i = 1, label_data:size(1) do
-		label_data[i] = label_data[i]:sub(torch.mean(label_data[i]))
-			:div(torch.std(label_data[i]) + 1e-7)
+	for i = 1, data:size(1) do
+		data[i] = data[i]:sub(torch.mean(data[i]))
+			:div(torch.std(data[i]) + 1e-7)
 	end
 	label_data:add(1 - torch.min(label_data))	--> [1, 10]
-	
+	assert(data:size(1) == label_data:size(1))
+
 	y_size = data:size(2)
 
 else
