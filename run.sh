@@ -26,7 +26,7 @@ elif [ "$DATA" == "mnist_fc" ]; then
   -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 
 elif [ "$DATA" == "fashion-mnist" ]; then
-  th main.lua -dataSet fashion-mnist -continuous 1 \
+  th main.lua -dataSet fashion-mnist -continuous 1 -hiddenSize 1000 \
   -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
   -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 

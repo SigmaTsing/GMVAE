@@ -385,7 +385,7 @@ for epoch = 1, max_epoch do
 		gnuplot.ylabel('CV')
 		gnuplot.plotflush()
 
-		if not( dataSet == 'spiral') then
+		if not( dataSet == 'spiral') and false then
 			local labels_statistics = labels:sum(1)
 			labels_statistics = labels_statistics/( labels_statistics:sum() + 1e-10 )
 			torch.save(paths.concat('experiments', opt._id, 'labels_stats.t7'), labels_statistics)
