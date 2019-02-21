@@ -95,12 +95,14 @@ elseif dataSet == 'fashion-mnist' then
 	
 	local train_set = fashion_mnist.traindataset()
 	data = train_set.data:float():div(255)
-	label_data = train_set.label:float():add(1)		--> [1, 10]
+	label_data = train_set.label:float()	
+	label_data:add(1 - torch.min(label_data))	--> [1, 10]
 
 	local test_set = fashion_mnist.testdataset()
 	test_data = test_set.data:float():div(255)
-	test_data_label = test_set.label:float():add(1)	--> [1, 10]
-	
+	test_data_label = test_set.label:float():add(1)	
+	test_data_label:add(1 - torch.min(test_data_label))	--> [1, 10]
+
 	if opt.inputDimension ~= 1 then
 		print('WARNING: Fashion MNIST only accepts inputDimension = 1')
 	end
@@ -109,6 +111,52 @@ elseif dataSet == 'fashion-mnist' then
     data = data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
 	test_data = test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
 	y_size = data:size(2)	-- 784
+
+elseif dataSet == 'stl-10' or dataSet == 'cifar-10' or dataSet == 'cifar-100' then
+	
+	local matio = require 'matio'
+	file_map = {['stl-10']='stl10_feature.mat', 
+		['cifar-10']='cifar10_feature.mat',
+		['cifar-100']='cifar100_feature.mat'}
+	file = paths.concat('datasets', file_map[dataSet])
+	data = matio.load(file, 'x'):float()
+	if data:size(1) < data:size(2) then	-- Kinda ugly...
+		print('Transpose data')
+		data = data:transpose(1, 2)
+	end
+	label_data = matio.load(file, 'y'):float()
+	label_data = label_data:resize(label_data:nElement())
+
+	-- Normalize
+	for i = 1, label_data:size(1) do
+		label_data[i] = label_data[i]:sub(torch.mean(label_data[i]))
+			:div(torch.std(label_data[i]) + 1e-7)
+	end
+	label_data:add(1 - torch.min(label_data))	--> [1, 10]
+
+	y_size = data:size(2)
+
+elseif dataSet == 'svhn' then
+	
+	local matio = require 'matio'
+	train_file = paths.concat('datasets', 'train_gist.mat') 
+	test_file = paths.concat('datasets', 'test_gist.mat')
+	train_data = matio.load(train_file, 'X')
+	train_label = matio.load(train_file, 'Y')
+	test_data = matio.load(test_file, 'X')
+	test_label = matio.load(test_file, 'Y')
+	data = torch.cat(train_data, test_data):float()
+	label_data = torch.cat(train_label, test_label):float()
+	label_data = label_data:resize(label_data:nElement())
+
+	-- Normalize
+	for i = 1, label_data:size(1) do
+		label_data[i] = label_data[i]:sub(torch.mean(label_data[i]))
+			:div(torch.std(label_data[i]) + 1e-7)
+	end
+	label_data:add(1 - torch.min(label_data))	--> [1, 10]
+	
+	y_size = data:size(2)
 
 else
 
@@ -219,12 +267,12 @@ if cuda == 1 then
 	Likelihood:cuda()
 
 	if hasCudnn then
-	  print('Using cudnn')
-   	  cudnn.convert(GMVAE, cudnn)
+		print('Using cudnn')
+   		cudnn.convert(GMVAE, cudnn)
   	end
 	if test_data then
-          test_data = test_data:cuda()
-        end
+        test_data = test_data:cuda()
+    end
 end
 
 local params, gradParams = GMVAE:getParameters()
@@ -409,30 +457,33 @@ for epoch = 1, max_epoch do
 		print('Training ACC score: '.. training_score)
 
 		GMVAE:evaluate()
-		-- split batchSize for cudnn --
-		local N_test = test_data:size(1)
-		test_data_set = test_data:split(1000)
-		local predict_label_cpu = torch.Tensor():resize(N_test,z_size)
 
-		for t,data  in ipairs(test_data_set) do
-			local predict_label =  zxw_recogniser:forward(data)[1]
-			predict_label_cpu[{{ 1000*(t-1) + 1, 1000*t },{}}] = predict_label:float()
+		if test_data then
+			-- split batchSize for cudnn --
+			local N_test = test_data:size(1)
+			test_data_set = test_data:split(1000)
+			local predict_label_cpu = torch.Tensor():resize(N_test,z_size)
+
+			for t,data  in ipairs(test_data_set) do
+				local predict_label =  zxw_recogniser:forward(data)[1]
+				predict_label_cpu[{{ 1000*(t-1) + 1, 1000*t },{}}] = predict_label:float()
+			end
+			local testing_acc_score = AAE_Clustering_Criteria(predict_label_cpu, test_data_label)
+			-- Testing ACC score
+			print('Testing ACC score: '.. testing_acc_score)
+
+			ACC_evaluation[epoch] = testing_acc_score
+			Train_ACC_evaluation[epoch] = training_score
+			torch.save(paths.concat('experiments', opt._id, 'acc_score.t7'), ACC_evaluation)
+			torch.save(paths.concat('experiments', opt._id, 'train_ACC_score.t7'), Train_ACC_evaluation)
+			gnuplot.pngfigure(paths.concat('experiments', opt._id, 'Scores.png'))
+			gnuplot.plot({'Unsupervised Clustering ACC', torch.linspace(1,epoch,epoch), ACC_evaluation[{{1,epoch}}] ,'-'},
+						 {'Training ACC', torch.linspace(1,epoch,epoch), Train_ACC_evaluation[{{1,epoch}}], '-' }
+						 )
+			gnuplot.xlabel('Epoch')
+			gnuplot.ylabel('Scores')
+			gnuplot.plotflush()
 		end
-		local testing_acc_score = AAE_Clustering_Criteria(predict_label_cpu, test_data_label)
-		-- Testing ACC score
-		print('Testing ACC score: '.. testing_acc_score)
-
-		ACC_evaluation[epoch] = testing_acc_score
-		Train_ACC_evaluation[epoch] = training_score
-		torch.save(paths.concat('experiments', opt._id, 'acc_score.t7'), ACC_evaluation)
-		torch.save(paths.concat('experiments', opt._id, 'train_ACC_score.t7'), Train_ACC_evaluation)
-		gnuplot.pngfigure(paths.concat('experiments', opt._id, 'Scores.png'))
-		gnuplot.plot({'Unsupervised Clustering ACC', torch.linspace(1,epoch,epoch), ACC_evaluation[{{1,epoch}}] ,'-'},
-					 {'Training ACC', torch.linspace(1,epoch,epoch), Train_ACC_evaluation[{{1,epoch}}], '-' }
-					 )
-		gnuplot.xlabel('Epoch')
-		gnuplot.ylabel('Scores')
-		gnuplot.plotflush()
 
 	end
 
