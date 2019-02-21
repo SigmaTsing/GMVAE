@@ -2,6 +2,10 @@
 
 local GaussianLogLikelihood, parent = torch.class('nn.GaussianLogLikelihood', 'nn.Module')
 
+local function copy_or_clone(lhs, rhs)
+	return (lhs or torch.Tensor()):typeAs(rhs):resizeAs(rhs):copy(rhs)
+end
+
 function GaussianLogLikelihood:__init(name,display)
 	parent.__init(self)
 	self.gradInput = {}
@@ -50,8 +54,4 @@ function GaussianLogLikelihood:updateGradInput(input, gradOutput)
 	self.gradInput[3] = torch.exp(-input[3]):cmul(x_m):cmul(x_m):mul(0.5):add(-0.5):cmul(gradOutput:expandAs(x_m))
 
 	return self.gradInput
-end
-
-function copy_or_clone(lhs, rhs)
-	return (lhs or torch.Tensor()):typeAs(rhs):resizeAs(rhs):copy(rhs)
 end
