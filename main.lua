@@ -126,12 +126,19 @@ elseif dataSet == 'stl-10' or dataSet == 'cifar-10' or dataSet == 'cifar-100' th
 	end
 	label_data = matio.load(file, 'y'):float()
 	label_data = label_data:resize(label_data:nElement())
-
+	
+	print(data:size())
+	print(label_data:size())
 	-- Normalize
-	for i = 1, data:size(1) do
-		data[i]:sub(torch.mean(data[i]))
+	--[[for i = 1, data:size(1) do
+		data[i] = data[i]:sub(torch.mean(data[i]))
 			:div(torch.std(data[i]) + 1e-7)
 	end
+	--]]
+	--[[
+	data = data:sub(torch.mean(data, 2))
+		:div(torch.std(data, 2) + 1e-7)
+	--]]
 	label_data:add(1 - torch.min(label_data))	--> [1, 10]
 	assert(data:size(1) == label_data:size(1))
 
@@ -146,15 +153,25 @@ elseif dataSet == 'svhn' then
 	train_label = matio.load(train_file, 'Y')
 	test_data = matio.load(test_file, 'X')
 	test_label = matio.load(test_file, 'Y')
-	data = torch.cat(train_data, test_data):float()
-	label_data = torch.cat(train_label, test_label):float()
+	print(train_data:size())
+	print(test_data:size())
+	print(train_label:size())
+	print(test_label:size())
+	data = torch.cat(train_data, test_data, 1):float()
+	label_data = torch.cat(train_label, test_label, 1):float()
 	label_data = label_data:resize(label_data:nElement())
-
+	n = data:size(1) - data:size(1) % 50 --batch_size
+	print(n)
+	data = data:sub(1, n, 1, data:size(2))
+	label_data = label_data:sub(1, n)
+	test_data = nil
 	-- Normalize
+	--[[
 	for i = 1, data:size(1) do
 		data[i] = data[i]:sub(torch.mean(data[i]))
 			:div(torch.std(data[i]) + 1e-7)
 	end
+	--]]
 	label_data:add(1 - torch.min(label_data))	--> [1, 10]
 	assert(data:size(1) == label_data:size(1))
 
