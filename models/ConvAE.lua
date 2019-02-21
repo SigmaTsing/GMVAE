@@ -20,7 +20,7 @@ function Model:CreateRecogniser(input_size, hidden_size, x_size, w_size, number_
 	local hidden = input
           - (type(input_size) == 'table' 
 		  and nn.View(-1, nChannels, input_size[1], input_size[2])
-		  or nn.View(-1, nChannels, input_size)
+		  or nn.View(-1, nChannels, input_size))
 					- nn.SpatialConvolution(nChannels, nFilters, 6,6,1,1,0,0)
 					- nn.SpatialBatchNormalization(nFilters)
 					- nn.ReLU(true)
@@ -87,7 +87,7 @@ function Model:CreateYGenerator(input_size, hidden_size, output_size, continous)
           - nn.SpatialFullConvolution( nFilters, nChannels, 6,6,1,1,0,0)
           - (type(output_size) == 'table' 
 		  and nn.View(-1, nChannels, output_size[1], output_size[2])
-		  or nn.View(-1, nChannels, output_size)
+		  or nn.View(-1, nChannels, output_size))
 
 	local output = hidden - nn.Sigmoid(true)
 
