@@ -12,7 +12,7 @@ local function normalize(x, eps)
 	for i = 1, x:size(1) do
 		mu = torch.mean(x[i])
 		std = torch.std(x[i]) + eps
-		data[i]:sub(mu):div(std)
+		x[i]:add(-mu):div(std)
 	end
 end
 
