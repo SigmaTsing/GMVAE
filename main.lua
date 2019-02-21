@@ -10,9 +10,9 @@ local function normalize(x, eps)
 	assert(x:nDimension() == 2)
 	
 	for i = 1, x:size(1) do
-		mu = torch.mean(x[i])
-		std = torch.std(x[i]) + eps
-		x[i]:add(-mu):div(std)
+		local mu = torch.mean(x[i])
+		local std = torch.std(x[i]) + eps
+		x[i]:add(-mu):div(std)	-- :sub is sub-array!!
 	end
 end
 
@@ -89,7 +89,7 @@ if dataSet == 'mnist' then
 	end
 	-- prepare label for measuring training accuracy
 	label_data = mnist.traindataset().label:float()
-	label_data:add(1) -- from [0,9] -> [1, 10]
+	label_data:add(1 - torch.min(label_data)) -- from [0,9] -> [1, 10]
 
 elseif dataSet == 'spiral' then
 
@@ -109,40 +109,38 @@ elseif dataSet == 'fashion-mnist' then
 	label_data:add(1 - torch.min(label_data))	--> [1, 10]
 
 	local test_set = fashion_mnist.testdataset()
-	test_data = test_set.data:float():div(255)
-	test_data_label = test_set.label:float():add(1)	
+	local test_data = test_set.data:float():div(255)
+	local test_data_label = test_set.label:float():add(1)	
 	test_data_label:add(1 - torch.min(test_data_label))	--> [1, 10]
 
 	if opt.inputDimension ~= 1 then
 		print('WARNING: Fashion MNIST only accepts inputDimension = 1')
 	end
 
-	-- y_size = {data:size(2), data:size(3)}
-    data = data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
-	test_data = test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
+    data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
+	test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
 	data = torch.cat(data, test_data, 1)
-	test_data = nil
 	label_data = torch.cat(label_data, test_data_label, 1)
-	test_data_label = nil
 	y_size = data:size(2)	-- 784
 
 elseif dataSet == 'stl-10' or dataSet == 'cifar-10' or dataSet == 'cifar-100' then
 	
 	local matio = require 'matio'
-	file_map = {['stl-10']='stl10_feature.mat', 
+	local file_map = {['stl-10']='stl10_feature.mat', 
 		['cifar-10']='cifar10_feature.mat',
 		['cifar-100']='cifar100_feature.mat'}
-	file = paths.concat('datasets', file_map[dataSet])
+	local file = paths.concat('datasets', file_map[dataSet])
 	data = matio.load(file, 'x'):float()
-	if data:size(1) < data:size(2) then	-- Kinda ugly...
-		print('Transpose data')
-		data = data:transpose(1, 2)
-	end
+
 	label_data = matio.load(file, 'y'):float()
 	label_data = label_data:resize(label_data:nElement())
 	
-	print(data:size())
-	print(label_data:size())
+	if data:size(1) ~= label_data:nElement() then	
+		print('Transpose data')
+		data = data:transpose(1, 2)
+		assert(data:size(1) == label_data:nElement())
+	end
+	
 	-- Normalize
 	normalize(data, 1e-7)
 	
@@ -154,33 +152,24 @@ elseif dataSet == 'stl-10' or dataSet == 'cifar-10' or dataSet == 'cifar-100' th
 elseif dataSet == 'svhn' then
 	
 	local matio = require 'matio'
-	train_file = paths.concat('datasets', 'train_gist.mat') 
-	test_file = paths.concat('datasets', 'test_gist.mat')
-	train_data = matio.load(train_file, 'X')
-	train_label = matio.load(train_file, 'Y')
-	test_data = matio.load(test_file, 'X')
-	test_label = matio.load(test_file, 'Y')
-	--[[
-	print(train_data:size())
-	print(test_data:size())
-	print(train_label:size())
-	print(test_label:size())
-	--]]
+	local train_file = paths.concat('datasets', 'train_gist.mat') 
+	local test_file = paths.concat('datasets', 'test_gist.mat')
+	local train_data = matio.load(train_file, 'X')
+	local train_label = matio.load(train_file, 'Y')
+	local test_data = matio.load(test_file, 'X')
+	local test_label = matio.load(test_file, 'Y')
+
 	data = torch.cat(train_data, test_data, 1):float()
 	label_data = torch.cat(train_label, test_label, 1):float()
 	label_data = label_data:resize(label_data:nElement())
-	n = data:size(1) - data:size(1) % opt.batchSize 
+
+	local n = data:size(1) - data:size(1) % opt.batchSize 
 	data = data:sub(1, n, 1, data:size(2))
 	label_data = label_data:sub(1, n)
-	test_data = nil
+
 	-- Normalize
 	normalize(data, 1e-7)
-	--[[
-	for i = 1, data:size(1) do
-		data[i] = data[i]:sub(torch.mean(data[i]))
-			:div(torch.std(data[i]) + 1e-7)
-	end
-	--]]
+
 	label_data:add(1 - torch.min(label_data))	--> [1, 10]
 	assert(data:size(1) == label_data:size(1))
 
@@ -463,6 +452,7 @@ for epoch = 1, max_epoch do
 		gnuplot.ylabel('CV')
 		gnuplot.plotflush()
 
+		-- LYL: skip this part
 		--[[
 		if not( dataSet == 'spiral') then
 			local labels_statistics = labels:sum(1)
