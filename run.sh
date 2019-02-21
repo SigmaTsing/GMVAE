@@ -30,19 +30,24 @@ elif [ "$DATA" == "fashion-mnist" ]; then
   -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
   -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 
-elif [ "$DATA" == "stl" ]; then
-  # TODO
-  echo "TODO"
+elif [ "$DATA" == "stl-10" ]; then
+  th main.lua -dataSet stl-10 -continuous 1 -hiddenSize 1000 \
+  -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
+  -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 
 elif [ "$DATA" == "cifar-10" ]; then
-  # TODO
-  echo "TODO"
+  th main.lua -dataSet cifar-10 -continuous 1 -hiddenSize 1000 \
+  -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
+  -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 
 elif [ "$DATA" == "cifar-100" ]; then
-  # TODO
-  echo "TODO"
+  th main.lua -dataSet cifar-100 -continuous 1 -hiddenSize 1000 \
+  -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
+  -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
+
 elif [ "$DATA" == "svhn" ]; then
-  # TODO
-  echo "TODO"
+  th main.lua -dataSet svhn -continuous 1 -hiddenSize 1000 \
+  -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
+  -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 
 fi
