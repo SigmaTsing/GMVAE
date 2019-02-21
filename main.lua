@@ -83,6 +83,7 @@ if dataSet == 'mnist' then
 
 elseif dataSet == 'spiral' then
 
+	-- LYL: actually cannot work properly (visualization part is buggy)
 	print('Load Spiral')
 	data = torch.load('datasets/spiral.t7'):float()
 	y_size = data:size(2)
@@ -100,16 +101,14 @@ elseif dataSet == 'fashion-mnist' then
 	test_data = test_set.data:float():div(255)
 	test_data_label = test_set.label:float():add(1)	--> [1, 10]
 	
-	if opt.inputDimension == 1 then
-		y_size = {data:size(2), data:size(3)}
-                data = data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
-		test_data = test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
-		-- y_size = data:size(2)
-	else
-		y_size = {data:size(2), data:size(3)}
-		data = data:resize(data:size(1), 1, data:size(2), data:size(3))
-		test_data = test_data:resize(test_data:size(1), 1, test_data:size(2), test_data:size(3))
+	if opt.inputDimension ~= 1 then
+		print('WARNING: Fashion MNIST only accepts inputDimension = 1')
 	end
+
+	-- y_size = {data:size(2), data:size(3)}
+    data = data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
+	test_data = test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
+	y_size = data:size(2)	-- 784
 
 else
 

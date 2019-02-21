@@ -11,14 +11,16 @@ oheight = floor((height + 2*padH - kH) / dH + 1)
 ]]--
 
 function Model:CreateRecogniser(input_size, hidden_size, x_size, w_size, number_of_mixtures)
-  local height = input_size[1] -- 28x28 for mnist
-  local width = input_size[2]
-  local nChannels = self.nChannels
-  local nFilters = self.nFilters
+	--local height = input_size[1] -- 28x28 for mnist
+	--local width = input_size[2]
+	local nChannels = self.nChannels
+	local nFilters = self.nFilters
 
-  local input = - nn.Identity()
+	local input = - nn.Identity()
 	local hidden = input
-          - nn.View(-1, nChannels, height, width)
+          - (type(input_size) == 'table' 
+		  and nn.View(-1, nChannels, input_size[1], input_size[2])
+		  or nn.View(-1, nChannels, input_size)
 					- nn.SpatialConvolution(nChannels, nFilters, 6,6,1,1,0,0)
 					- nn.SpatialBatchNormalization(nFilters)
 					- nn.ReLU(true)
@@ -33,11 +35,11 @@ function Model:CreateRecogniser(input_size, hidden_size, x_size, w_size, number_
           - nn.ReLU(true)
           --out: hidden x 1 x 1
           - nn.View(-1, hidden_size)
-  --[[
+	--[[
 	local q_z = hidden
 				- nn.Linear(hidden_size, number_of_mixtures)
 				- nn.SoftMax()
-        ]]--
+    ]]--
 
 	local mean_x = hidden
 				- nn.Linear(hidden_size, x_size)
@@ -52,7 +54,7 @@ function Model:CreateRecogniser(input_size, hidden_size, x_size, w_size, number_
 	local q_w = {mean_w, logVar_w} - nn.Identity()
 
 	--return nn.gModule({input}, {q_z, q_x, q_w})
-  return nn.gModule({input}, {q_x, q_w})
+	return nn.gModule({input}, {q_x, q_w})
 end
 
 --[[
@@ -62,10 +64,10 @@ oheight = (height - 1) * dH - 2*padH + kH + adjH
 ]]--
 
 function Model:CreateYGenerator(input_size, hidden_size, output_size, continous)
-  local height = output_size[1]
-  local width = output_size[2]
-  local nChannels = self.nChannels
-  local nFilters = self.nFilters
+	--local height = output_size[1]
+	--local width = output_size[2]
+	local nChannels = self.nChannels
+	local nFilters = self.nFilters
 
 	local input = - nn.Identity()
 	local hidden = input
@@ -83,7 +85,9 @@ function Model:CreateYGenerator(input_size, hidden_size, output_size, continous)
           - nn.SpatialBatchNormalization( nFilters)
           - nn.ReLU(true)
           - nn.SpatialFullConvolution( nFilters, nChannels, 6,6,1,1,0,0)
-          - nn.View(-1, nChannels, height, width)
+          - (type(output_size) == 'table' 
+		  and nn.View(-1, nChannels, output_size[1], output_size[2])
+		  or nn.View(-1, nChannels, output_size)
 
 	local output = hidden - nn.Sigmoid(true)
 
