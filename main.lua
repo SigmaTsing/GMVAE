@@ -104,24 +104,27 @@ elseif dataSet == 'fashion-mnist' then
 	local fashion_mnist = require 'fashion-mnist'
 	
 	local train_set = fashion_mnist.traindataset()
-	data = train_set.data:float():div(255)
-	label_data = train_set.label:float()	
+	local test_set = fashion_mnist.testdataset()
+
+	data = torch.cat(train_set.data, test_set.data, 1):float()
+	label_data = torch.cat(train_set.label, test_set.label, 1):float()
+	data:div(255)
 	label_data:add(1 - torch.min(label_data))	--> [1, 10]
 
-	local test_set = fashion_mnist.testdataset()
-	local test_data = test_set.data:float():div(255)
-	local test_data_label = test_set.label:float():add(1)	
-	test_data_label:add(1 - torch.min(test_data_label))	--> [1, 10]
+	if opt.inputDimension == 1 then
+		assert(opt.network == 'fc')
+		data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
+		y_size = data:size(2)	-- 784
 
-	if opt.inputDimension ~= 1 then
-		print('WARNING: Fashion MNIST only accepts inputDimension = 1')
+	elseif opt.inputDimension == 2 then
+		assert(opt.network == 'conv')
+		y_size = {data:size(2), data:size(3)}
+		data:resize(data:size(1), 1, data:size(2), data:size(3))
+	
+	else
+		error('Invalid input dimension ' .. opt.inputDimension)
+
 	end
-
-    data:resize(data:size(1), data:size(2)*data:size(3)) -- resize into 1D
-	test_data:resize(test_data:size(1), test_data:size(2)*test_data:size(3))
-	data = torch.cat(data, test_data, 1)
-	label_data = torch.cat(label_data, test_data_label, 1)
-	y_size = data:size(2)	-- 784
 
 elseif dataSet == 'stl-10' or dataSet == 'cifar-10' or dataSet == 'cifar-100' then
 	

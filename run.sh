@@ -25,7 +25,7 @@ elif [ "$DATA" == "mnist_fc" ]; then
   th main.lua -ACC 1 -visualGen 1 -K 14 -hiddenSize 1000 -batchSize 50 \
   -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 
-elif [ "$DATA" == "fashion-mnist" ]; then
+elif [ "$DATA" == "fashion-mnist-fc" ]; then
   th main.lua -dataSet fashion-mnist -continuous 1 -hiddenSize 1000 \
   -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
   -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
@@ -48,6 +48,11 @@ elif [ "$DATA" == "cifar-100" ]; then
 elif [ "$DATA" == "svhn" ]; then
   th main.lua -dataSet svhn -continuous 1 -hiddenSize 1000 \
   -ACC 1 -K 10 -batchSize 50 -inputDimension 1 -network fc \
+  -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
+
+elif [ "$DATA" == "fashion-mnist" ]; then
+  th main.lua -dataSet fashion-mnist -continuous 1 -hiddenSize 1000 \
+  -ACC 1 -K 10 -batchSize 50 -inputDimension 2 -network conv \
   -xSize 200 -wSize 150 -cvWeight 0.4 "$@"
 
 fi
