@@ -50,6 +50,39 @@ I would like to thanks the following, whose github's repos were used as inital t
 
 3. Kai Arulkumaran https://github.com/Kaixhin/Autoencoders
 
-# Refactor notes (LYL)
-1. Should be luarocks, not torch-rocks
-2. luarocks install https://raw.github.com/mingloo/fashion-mnist/master/rocks/fashion-mnist-scm-1.rockspec
+# Extensions (LYL)
+
+I added code for Fashion-MNIST, STL-10, CIFAR-10, CIFAR-100, SVHN using fully connected layers.
+
+## HOWTO
+
+1. Install LuaJIT and luarocks following http://torch.ch/docs/getting-started.html. Don't ever try to install it on Ubuntu 18.04 (yes, you can install torch7, but you will eventually fail to install matio package). Ubuntu 16.04.5 LTS is fine. Still you may encounter "error: more than one operator "==" matches these operands", for which you `export TORCH_NVCC_FLAGS="-D__CUDA_NO_HALF_OPERATORS__` before building.
+
+2. Install mnist, fashion-mnist, matio. Should be unnecessary to configure Python.
+
+   ```shell
+   luarocks install mnist
+   luarocks install https://raw.github.com/mingloo/fashion-mnist/master/rocks/fashion-mnist-scm-1.rockspec`
+   apt-get install libmatio2	
+   # You can only find libmatio4 on Ubuntu 18.04, which I think is not compatible with matio
+   luarocks install matio
+   # Or: luarocks install https://raw.github.com/soumith/matio-ffi.torch/master/matio-scm-1.rockspec
+   ```
+
+3. Copy the following files into `datasets`
+
+   ```
+   cifar10_feature.mat
+   cifar100_feature.mat
+   stl10_feature.mat
+   train_gist.mat
+   test_gist.mat	
+   ```
+
+4. Run `./run.sh {spiral,mnist,mnist_fc,fashion-mnist-fc,stl-10,cifar-10,cifar-00,svhn} [-gpu GPU]` (note that gpu index starts with 1)
+
+## NOTE
+
+I can't find what's wrong about `./run.sh fashion-mnist [-gpu GPU]`,  but the tensor shapes do not match.
+
+   
