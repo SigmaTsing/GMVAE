@@ -92,6 +92,6 @@ I can't find what's wrong about `./run.sh fashion-mnist [-gpu GPU]`,  but the te
 
 usually runs with orders like "./run.sh -gpu 1 -seed 1" (enable gpu and runs with random seed)
 
-(btw the randomlize progress of lua is so amazing that if you forget -seed 1, you will discover all your programs get exactly same result :(
+(btw the randomlize progress of lua is so amazing that if you forget -seed 1, you will discover all your programs get exactly same results :(
 
 And if you get CUDA in your system, just run "CUDA_VISIBLE_DEVICES=* ./run.sh -gpu 1 -seed 1"
