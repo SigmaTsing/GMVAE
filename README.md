@@ -85,4 +85,13 @@ I added code for Fashion-MNIST, STL-10, CIFAR-10, CIFAR-100, SVHN using fully co
 
 I can't find what's wrong about `./run.sh fashion-mnist [-gpu GPU]`,  but the tensor shapes do not match.
 
-   
+# Notes by XSQ
+(to someone who doesn't know lua at all, like me)
+
+./run.sh (or simply th main.lua) runs with several args, a simple way is to tag uncomplete order like "./run.sh -gpu", and program will show you all possible options
+
+usually runs with orders like "./run.sh -gpu 1 -seed 1" (enable gpu and runs with random seed)
+
+(btw the randomlize progress of lua is so amazing that if you forget -seed 1, you will discover all your programs get exactly same result :(
+
+And if you get CUDA in your system, just run "CUDA_VISIBLE_DEVICES=* ./run.sh -gpu 1 -seed 1"
