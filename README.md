@@ -88,7 +88,8 @@ I can't find what's wrong about `./run.sh fashion-mnist [-gpu GPU]`,  but the te
 # Notes by XSQ
 (to someone who doesn't know lua at all, like me)
 
-./run.sh (or simply th main.lua) runs with several args, a simple way is to tag uncomplete order like "./run.sh -gpu", and program will show you all possible options
+./run.sh (or simply th main.lua) runs with several args
+a simple way to make out all the orders is to tag uncomplete order like "./run.sh -gpu", and program will show you all possible options
 
 usually runs with orders like "./run.sh -gpu 1 -seed 1" (enable gpu and runs with random seed)
 
